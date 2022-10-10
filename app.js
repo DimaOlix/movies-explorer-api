@@ -12,6 +12,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
+const helmet = require('helmet');
+const apiRequestLimiter = require('./utils/apiRequestLimiter');
 const routerUser = require('./routes/users');
 const routerMovie = require('./routes/movies');
 const { checkAuth } = require('./middlewares/auth');
@@ -24,9 +26,14 @@ const { validateLogin, validateCreateUser } = require('./middlewares/validations
 
 const app = express();
 
+app.use(helmet());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+
+app.use(apiRequestLimiter);
 
 app.use(requestLogger);
 
@@ -52,7 +59,7 @@ app.use(errorHandler);
 async function connect() {
   await mongoose.connect(NODE_ENV === 'production'
     ? MONGO_URI
-    : 'mongodb://localhost:27017/mestodb',
+    : 'mongodb://localhost:27017/myfilmsdb',
   {
     useNewUrlParser: true,
     useUnifiedTopology: false,

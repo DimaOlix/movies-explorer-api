@@ -1,4 +1,4 @@
-const ErrorForbidden = require('../../react-mesto-api-full/backend/error-classes/ErrorForbidden');
+const ErrorForbidden = require('../error-classes/ErrorForbidden');
 const ErrorIncorrectData = require('../error-classes/ErrorIncorrectData');
 const ErrorNotFound = require('../error-classes/ErrorNotFound');
 const ErrorServer = require('../error-classes/ErrorServer');
