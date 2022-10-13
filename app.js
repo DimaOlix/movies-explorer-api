@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 require('dotenv').config();
 
 const {
@@ -14,14 +13,15 @@ const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 const helmet = require('helmet');
 const apiRequestLimiter = require('./utils/apiRequestLimiter');
-const routerUser = require('./routes/users');
-const routerMovie = require('./routes/movies');
+const { routerMovie, routerUser } = require('./routes/index');
 const { checkAuth } = require('./middlewares/auth');
 const { createUser, login, logOut } = require('./controllers/users');
-const ErrorNonExistentAddress = require('./error-classes/ErrorNonExistentAddress');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const { validateLogin, validateCreateUser } = require('./middlewares/validations');
+const mongoAddress = require('./utils/mongoAddress');
+const { messageNonExistentAddress } = require('./utils/errorMessage');
+const ErrorNotFound = require('./error-classes/ErrorNotFound');
 
 
 const app = express();
@@ -32,10 +32,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use(requestLogger);
 
 app.use(apiRequestLimiter);
-
-app.use(requestLogger);
 
 app.post('/signup', validateCreateUser, createUser);
 app.post('/signin', validateLogin, login);
@@ -48,7 +47,7 @@ app.use('/users', routerUser);
 app.use('/movies', routerMovie);
 
 app.use('*', (req, res, next) => {
-  next(new ErrorNonExistentAddress('Неверный адрес запроса'));
+  next(new ErrorNotFound(messageNonExistentAddress));
 });
 
 app.use(errorLogger);
@@ -59,14 +58,13 @@ app.use(errorHandler);
 async function connect() {
   await mongoose.connect(NODE_ENV === 'production'
     ? MONGO_URI
-    : 'mongodb://localhost:27017/myfilmsdb',
+    : mongoAddress,
   {
     useNewUrlParser: true,
     useUnifiedTopology: false,
   });
 
   await app.listen(NODE_ENV === 'production' ? PORT : 3000);
-  // eslint-disable-next-line no-console
   console.log(`App listening on port ${NODE_ENV === 'production' ? PORT : 3000}`);
 }
 

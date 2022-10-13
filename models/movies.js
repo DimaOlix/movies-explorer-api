@@ -1,11 +1,10 @@
-/* eslint-disable no-useless-escape */
 const mongoose = require('mongoose');
 const regularExpressionForUrl = require('../utils/regularExpressionForUrl');
 
 const moviesSchema = mongoose.Schema({
   country: {
     type: String,
-    reqired: true,
+    required: true,
   },
   director: {
     type: String,
@@ -43,17 +42,17 @@ const moviesSchema = mongoose.Schema({
     required: true,
   },
   movieId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Number,
     required: true,
   },
-  nameRu: {
+  nameRU: {
     type: String,
     required: true,
   },
-  nameEn: {
+  nameEN: {
     type: String,
     required: true,
   },
-});
+}, { versionKey: false });
 
 module.exports = mongoose.model('Muvie', moviesSchema);

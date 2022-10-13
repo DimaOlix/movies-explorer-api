@@ -3,62 +3,35 @@ const ErrorIncorrectData = require('../error-classes/ErrorIncorrectData');
 const ErrorNotFound = require('../error-classes/ErrorNotFound');
 const ErrorServer = require('../error-classes/ErrorServer');
 const Muvie = require('../models/movies');
+const {
+  messageNotFoundMovies,
+  messageErrorServer,
+  messageIncorrectData,
+  messageForidden,
+} = require('../utils/errorMessage');
 
 module.exports.getUserMovies = async (req, res, next) => {
   try {
     const movies = await Muvie.find({ owner: req.user._id });
 
-    if (movies.length === 0) {
-      next(new ErrorNotFound('У вас пока нет добавленных видео :('));
-    }
-
     res.send(movies);
   } catch (err) {
-    next(new ErrorServer('Произошла ошибка на сервере'));
+    next(new ErrorServer(messageErrorServer));
   }
 };
 
 module.exports.createMovie = async (req, res, next) => {
   try {
-    const {
-      country,
-      director,
-      duration,
-      year,
-      description,
-      image,
-      trailerLink,
-      nameRu,
-      nameEn,
-      thumbnail,
-      movieId,
-    } = req.body;
-
-    const owner = req.user._id;
-
-    const movie = await Muvie.create({
-      country,
-      director,
-      duration,
-      year,
-      description,
-      image,
-      trailerLink,
-      nameRu,
-      nameEn,
-      thumbnail,
-      movieId,
-      owner,
-    });
+    const movie = await Muvie.create({ ...req.body, owner: req.user._id });
 
     res.send(movie);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new ErrorIncorrectData('Переданные данные не прошли проверку'));
+      next(new ErrorIncorrectData(messageIncorrectData));
       return;
     }
 
-    next(new ErrorServer('Произошла ошибка на сервере'));
+    next(new ErrorServer(messageErrorServer));
   }
 };
 
@@ -67,7 +40,12 @@ module.exports.deleteMovie = async (req, res, next) => {
     const movie = await Muvie.findById(req.params.movieId);
 
     if (!movie) {
-      next(new ErrorForbidden('Фильм с данным id не найден'));
+      next(new ErrorNotFound(messageNotFoundMovies));
+      return;
+    }
+
+    if (JSON.stringify(movie.owner) !== JSON.stringify(req.user._id)) {
+      next(new ErrorForbidden(messageForidden));
       return;
     }
 
@@ -75,11 +53,6 @@ module.exports.deleteMovie = async (req, res, next) => {
 
     res.send(movie);
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      next(new ErrorIncorrectData('Переданы некорректные данные'));
-      return;
-    }
-
-    next(new ErrorServer('Произошла ошибка на сервере'));
+    next(new ErrorServer(messageErrorServer));
   }
 };

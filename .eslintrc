@@ -4,7 +4,8 @@
     "no-underscore-dangle": [
       "error",
       {
-        "allow": ["_id", "_message"]
+        "allow": ["_id", "_message"],
+        "no-console": "error"
       }
     ]
   }

@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 require('dotenv').config();
 
 const {
@@ -9,6 +8,10 @@ const {
 const jwt = require('jsonwebtoken');
 const ErrorAuthentication = require('../error-classes/ErrorAuthentication');
 const ErrorServer = require('../error-classes/ErrorServer');
+const {
+  messageNoToken,
+  messageIncorrectToken,
+} = require('../utils/errorMessage');
 
 
 module.exports.checkAuth = (req, res, next) => {
@@ -16,7 +19,7 @@ module.exports.checkAuth = (req, res, next) => {
     const { token } = req.cookies;
 
     if (!token) {
-      next(new ErrorAuthentication('Отсутствует токен'));
+      next(new ErrorAuthentication(messageNoToken));
       return;
     }
 
@@ -27,7 +30,7 @@ module.exports.checkAuth = (req, res, next) => {
     req.user = payload;
   } catch (err) {
     if (err.name === 'JsonWebTokenError') {
-      next(new ErrorAuthentication('Некорректный токен'));
+      next(new ErrorAuthentication(messageIncorrectToken));
       return;
     }
 

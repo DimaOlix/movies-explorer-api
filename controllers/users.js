@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 require('dotenv').config();
 
 const {
@@ -15,6 +14,17 @@ const ErrorIncorrectData = require('../error-classes/ErrorIncorrectData');
 const ErrorServer = require('../error-classes/ErrorServer');
 const ErrorAuthentication = require('../error-classes/ErrorAuthentication');
 const ErrorConflict = require('../error-classes/ErrorConflict');
+const {
+  messageNotFoundUser,
+  messageIncorrectData,
+  messageErrorServer,
+  messageConflict,
+  messageAuthentication,
+} = require('../utils/errorMessage');
+const {
+  messageSuccessfulAuth,
+  messageSuccessfulSignout,
+} = require('../utils/messageSuccessfulRequest');
 
 
 module.exports.getUser = async (req, res, next) => {
@@ -22,18 +32,18 @@ module.exports.getUser = async (req, res, next) => {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      next(new ErrorNotFound('Пользователь не найден'));
+      next(new ErrorNotFound(messageNotFoundUser));
       return;
     }
 
     res.send(user);
   } catch (err) {
     if (err.kind === 'ObjectId') {
-      next(new ErrorIncorrectData('Некорректный id пользователя'));
+      next(new ErrorIncorrectData(messageIncorrectData));
       return;
     }
 
-    next(new ErrorServer('Произошла ошибка на сервере'));
+    next(new ErrorServer(messageErrorServer));
   }
 };
 
@@ -45,18 +55,23 @@ module.exports.editUserData = async (req, res, next) => {
     });
 
     if (!user) {
-      next(new ErrorNotFound('Пользователя с таким id не найдено'));
+      next(new ErrorNotFound(messageNotFoundUser));
       return;
     }
 
     res.send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new ErrorIncorrectData('Переданы некорректные данные'));
+      next(new ErrorIncorrectData(messageIncorrectData));
       return;
     }
 
-    next(new ErrorServer('Произошла ошибка на сервере'));
+    if (err.code === 11000) {
+      next(new ErrorConflict(messageConflict));
+      return;
+    }
+
+    next(new ErrorServer(messageErrorServer));
   }
 };
 
@@ -71,26 +86,25 @@ module.exports.createUser = async (req, res, next) => {
       email,
     } = req.body;
 
-
     const user = await User.create({
-      name,
       email,
       password,
+      name,
     });
 
     res.send(user.toJSON());
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new ErrorIncorrectData('Переданы некорректные данные'));
+      next(new ErrorIncorrectData(messageIncorrectData));
       return;
     }
 
     if (err.code === 11000) {
-      next(new ErrorConflict('Пользователь с указанным email уже зарегистрирован'));
+      next(new ErrorConflict(messageConflict));
       return;
     }
 
-    next(new ErrorServer('Произошла ошибка на сервере'));
+    next(new ErrorServer(messageErrorServer));
   }
 };
 
@@ -101,14 +115,14 @@ module.exports.login = async (req, res, next) => {
       .select('+password');
 
     if (!user) {
-      next(new ErrorAuthentication('Неверный email или пароль'));
+      next(new ErrorAuthentication(messageAuthentication));
       return;
     }
 
     const resultCompar = await bcrypt.compare(password, user.password);
 
     if (!resultCompar) {
-      next(new ErrorAuthentication('Неверный email или пароль'));
+      next(new ErrorAuthentication(messageAuthentication));
       return;
     }
 
@@ -122,29 +136,22 @@ module.exports.login = async (req, res, next) => {
       httpOnly: true,
       sameSite: false,
     })
-      .send({ password: user.password })
-      .end();
+      .send({ message: messageSuccessfulAuth });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new ErrorIncorrectData('Переданы некорректные данные'));
+      next(new ErrorIncorrectData(messageIncorrectData));
       return;
     }
 
-    next(new ErrorServer('Произошла ошибка на сервере'));
+    next(new ErrorServer(messageErrorServer));
   }
 };
 
 module.exports.logOut = async (req, res, next) => {
   try {
-    if (!req.cookies) {
-      next(new ErrorAuthentication('Вы не авторизованы'));
-      return;
-    }
-
     res.clearCookie('token')
-      .send()
-      .end();
+      .send({ message: messageSuccessfulSignout });
   } catch (err) {
-    next(new ErrorServer('Произошла ошибка на сервере'));
+    next(new ErrorServer(messageErrorServer));
   }
 };
