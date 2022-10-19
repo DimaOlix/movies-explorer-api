@@ -5,5 +5,5 @@
 Ссылка на подключение к BM: dolih@178.154.201.74
 
 IP 178.154.201.74
-Backend https://dolih-diplom.student.nomoredomains.icu
-Frontend https://api.dolih-diplom.student.nomoredomains.icu
+Frontend https://dolih-diplom.student.nomoredomains.icu
+Backend https://api.dolih-diplom.student.nomoredomains.icu

@@ -13,7 +13,6 @@ const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 const helmet = require('helmet');
 const apiRequestLimiter = require('./utils/apiRequestLimiter');
-const { routerMovie, routerUser } = require('./routes/index');
 const { checkAuth } = require('./middlewares/auth');
 const { createUser, login, logOut } = require('./controllers/users');
 const { errorHandler } = require('./middlewares/errorHandler');
@@ -22,6 +21,8 @@ const { validateLogin, validateCreateUser } = require('./middlewares/validations
 const mongoAddress = require('./utils/mongoAddress');
 const { messageNonExistentAddress } = require('./utils/errorMessage');
 const ErrorNotFound = require('./error-classes/ErrorNotFound');
+const { routerUser } = require('./routes/users');
+const { routerMovie } = require('./routes/movies');
 
 
 const app = express();
