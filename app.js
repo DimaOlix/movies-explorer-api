@@ -23,6 +23,7 @@ const { messageNonExistentAddress } = require('./utils/errorMessage');
 const ErrorNotFound = require('./error-classes/ErrorNotFound');
 const { routerUser } = require('./routes/users');
 const { routerMovie } = require('./routes/movies');
+const { handleCors } = require('./middlewares/handleCors');
 
 
 const app = express();
@@ -32,6 +33,8 @@ app.use(helmet());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.use(handleCors);
 
 app.use(requestLogger);
 
